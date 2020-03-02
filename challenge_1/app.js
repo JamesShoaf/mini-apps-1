@@ -40,12 +40,16 @@ var model = {
 
   //draw a new board when a move is received
   updateBoard: (moveObj) => {
+    //if the winner has been declared, do nothing
+    // console.log('hello from updateBoard', model.state.winner);
+    // if(model.state.winner) {
+    //   return;
+    // }
     //slice current 3x3 board
     var newBoard = model.state.currentBoard.slice();
     //take move sent from controller's event listener and update the new board
     newBoard[moveObj.move[1]][moveObj.move[0]] = moveObj.token;
     //switch whose turn it is
-    model.swapTurns();
     //check if the board is solved
     var victory = model.isBoardSolved(newBoard);
       //isBoardSolved returns a tuple of [bool, string] with bool representing board state
@@ -53,6 +57,7 @@ var model = {
       if(victory[0] === true) {
         //render the victory banner based on the string
         view.renderBanner(victory[1]);
+        model.state.winner = victory[1];
       }
     //regardless, pass the new board to the render function
     view.renderBoard(newBoard);
@@ -141,10 +146,9 @@ var view = {
   //update DOM after each move - general board renderer
   renderBoard: (board) => {
     //clear board to rerender
-    document.getElementById("board").innerHTML = 'test';
+    document.getElementById("board").innerHTML = '';
     //add in each row
     for (let row = 0; row < board.length; row++) {
-      console.log(row);
       var rowObj = document.createElement('div');
       rowObj.setAttribute('class', `row${row}`);
       //document.getElementById('board').appendChild(rowObj); adds rows correctly from here
@@ -155,14 +159,14 @@ var view = {
         cellObj.setAttribute('class', `col${col}`);
         //if the cell is blank, add an event listener for click events
         if(board[row][col] === null) {
-          cellObj.innerHTML = '-';
+          cellObj.innerHTML = ' - ';
           //create the function to run when the cell is clicked
           var moveListener = controller.createMoveListener([col,row]);
           //and add it to the cell
           cellObj.addEventListener("click", moveListener);
         } else {
           //if the cell is filled, copy the contents from the board
-          cellObj.innerHTML = board[row][col];
+          cellObj.innerHTML = ` ${board[row][col]} `;
         }
         //add the cell to the row
         rowObj.appendChild(cellObj);
@@ -182,7 +186,6 @@ var view = {
       console.log('GET READY!');
       document.getElementById("banner").innerHTML='';
     } else {
-      console.log(`${winner} wins the round!`)
       document.getElementById('banner').innerHTML=`VICTORY FOR ${winner}`;
     }
   },
@@ -204,6 +207,11 @@ var controller = {
   createMoveListener: (xyTuple) => {
     //takes the tuple [x, y] from view when the listener is added and returns a function
     return (() => {
+      if(model.state.winner) {
+        console.log('The game has ended! Please press reset to continue.');
+        return;
+      }
+      // console.log('the winner is', model.state.winner);
       //that calls the updateBoard function with a move Object
       model.updateBoard({
         move: xyTuple,
@@ -211,6 +219,10 @@ var controller = {
       });
       //and logs the move to the console
       console.log(`${model.state.currentPlayer} places at [${xyTuple[0]}, ${xyTuple[1]}].`)
+      model.swapTurns();
+      if(model.state.winner) {
+        console.log(`${model.state.winner} wins the round!`);
+      }
     });
   },
 
