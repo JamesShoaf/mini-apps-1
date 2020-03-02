@@ -1,7 +1,10 @@
 //Model functions
 var model = {
 
-  state: {},
+  state: {
+    X: 0,
+    O: 0
+  },
 
   initialize: () => {
     model.reinitialize();
@@ -9,10 +12,14 @@ var model = {
   },
 
   //initialize board
-  reinitialize: () => {
+  reinitialize: (winner) => {
     //set up state variables
     //whose turn (start with X)
-    model.state.currentPlayer = 'X';
+    var startingPlayer = 'X'
+    if (winner === 'X') {
+      startingPlayer = 'O'
+    }
+    model.state.currentPlayer = startingPlayer;
     //board solved (start with 'false')
     model.state.boardSolved = false;
     //winner (start with null)
@@ -29,13 +36,14 @@ var model = {
     view.renderBoard(model.state.currentBoard);
   },
 
+  swap: {
+    X: 'O',
+    O: 'X'
+  },
+
   //turn swapping helper function
   swapTurns: () => {
-    var swap = {
-      X: 'O',
-      O: 'X'
-    };
-    model.state.currentPlayer = swap[model.state.currentPlayer];
+    model.state.currentPlayer = model.swap[model.state.currentPlayer];
   },
 
   //draw a new board when a move is received
@@ -133,6 +141,7 @@ var model = {
       return [solved, null];
     } else {
       //if the board is solved, return true and the winner
+      model.state[solved] += 1;
       return [true, solved];
     }
     /* premature optimization - check for games where victory is impossible */
@@ -183,7 +192,7 @@ var view = {
   renderBanner: (winner) => {
     //initialize will send a reset request (null) to clear the current banner
     if (winner === null) {
-      console.log('GET READY!');
+      console.log(`GET READY!\n${model.state.currentPlayer} plays first`);
       document.getElementById("banner").innerHTML='';
     } else {
       document.getElementById('banner').innerHTML=`VICTORY FOR ${winner}`;
@@ -222,13 +231,14 @@ var controller = {
       model.swapTurns();
       if(model.state.winner) {
         console.log(`${model.state.winner} wins the round!`);
+        console.log(`CURRENT SCORES\nX: ${model.state.X}\nO: ${model.state.O}`);
       }
     });
   },
 
   resetBoard: () => {
     console.log('Clearing the board for a new round!')
-    model.reinitialize();
+    model.reinitialize(model.state.winner);
   }
 };
 
