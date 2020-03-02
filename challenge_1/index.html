@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset ="utf-8">
   <title>Tic-Tac-Toe! THE ONLY WINNING MOVE IS NOT TO PLAY</title>
+  <script src="app.js"></script>
 </head>
 <body>
-  <script src="app.js"></script>
+  <div id="banner">Loading Game Board</div>
+  <div id="board"></div>
+
+  <script type="text/javascript">
+    window.onload = () => {
+      model.initialize();
+    }
+  </script>
 </body>
 </html>

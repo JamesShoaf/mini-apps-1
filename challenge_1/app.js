@@ -22,6 +22,7 @@ var model = {
     //reset the banner function
     view.renderBanner(null);
     //send the new board to the render function
+    view.renderBoard(model.state.currentBoard);
   },
 
   //turn swapping helper function
@@ -134,19 +135,34 @@ var model = {
 //View functions
 var view = {
   //update DOM after each move - general board renderer
+  renderBoard: (board) => {
+    //clear board to rerender
+    document.getElementById("board").innerHTML = '';
+    //add in each row
+    for (let row = 0; row < board.length; row++) {
+      document.getElementById('board').appendChild('div').setAttribute('data', `${row}`);
+      //then add in each cell to that row
+      // for (let col = 0; col < board[row].length; col++){
+      //   document.getElement
+      // }
+    }
+  },
     /* premature optimization - include an undo button if the user presses the last square that was placed */
     //add event listener to squares that need it - blank ones
     //rerender board (do not reload page) that is passed in from model
 
   //render a banner with the victor
   renderBanner: (winner) => {
+    //initialize will send a reset request (null) to clear the current banner
     if (winner === null) {
       console.log('GET READY!');
+      document.getElementById("banner").innerHTML='';
     } else {
       console.log(`${winner} wins the round!`)
+      document.getElementById('banner').innerHTML=`VICTORY FOR ${winner}`;
     }
   }
-    //initialize will send a reset request (null) that should be handled
+
     //take winner state
     //append a bold banner '{state.winner} is the Victor'
     /* premature optimization - banner could list the current king of the hill or reigning champ when board is reset*/
@@ -157,7 +173,7 @@ var controller = {
   //update board when a piece is placed
     //attach event listener to empty squares
 
-  createEventListener: (xyTuple) => {
+  createMoveListener: (xyTuple) => {
     //takes the tuple [x, y] from view when the listener is added and returns a function
     return (() => {
       //that calls the updateBoard function with a move Object
@@ -168,10 +184,15 @@ var controller = {
       //and logs the move to the console
       console.log(`${currentPlayer} places at [${xyTuple[0]}, ${xyTuple[1]}].`)
     });
+  },
+
+  resetBoard: () => {
+    console.log('Clearing the board for a new round!')
+    model.initialize();
   }
 
 };
 
 
-//initialize the app after declaring all these functions!
-model.initialize();
+// //initialize the app after declaring all these functions!
+// model.initialize();
