@@ -3,9 +3,13 @@ var model = {
 
   state: {},
 
-  //initialize board
-
   initialize: () => {
+    model.reinitialize();
+    view.initializeReset();
+  },
+
+  //initialize board
+  reinitialize: () => {
     //set up state variables
     //whose turn (start with X)
     model.state.currentPlayer = 'X';
@@ -31,7 +35,7 @@ var model = {
       X: 'O',
       O: 'X'
     };
-    model.state.currentPlayer = swap[currentPlayer];
+    model.state.currentPlayer = swap[model.state.currentPlayer];
   },
 
   //draw a new board when a move is received
@@ -43,7 +47,7 @@ var model = {
     //switch whose turn it is
     model.swapTurns();
     //check if the board is solved
-    var victory = isBoardSolved(newBoard);
+    var victory = model.isBoardSolved(newBoard);
       //isBoardSolved returns a tuple of [bool, string] with bool representing board state
       //if bool is true
       if(victory[0] === true) {
@@ -108,15 +112,15 @@ var model = {
   //check if board has been solved
   isBoardSolved: (board) => {
     //check each helper function in increasing order of time complexity
-    var solved = majorDiagonalHelper(board);
+    var solved = model.solverHelpers.majorDiagonalHelper(board);
     if (!solved) {
-      solved = minorDiagonalHelper(board);
+      solved = model.solverHelpers.minorDiagonalHelper(board);
     }
     if (!solved) {
-      solved = rowHelper(board);
+      solved = model.solverHelpers.rowHelper(board);
     }
     if (!solved) {
-      solved = columnHelper(board);
+      solved = model.solverHelpers.columnHelper(board);
     }
     //if solved is still not true, the game continues!
     if (!solved) {
@@ -137,14 +141,34 @@ var view = {
   //update DOM after each move - general board renderer
   renderBoard: (board) => {
     //clear board to rerender
-    document.getElementById("board").innerHTML = '';
+    document.getElementById("board").innerHTML = 'test';
     //add in each row
     for (let row = 0; row < board.length; row++) {
-      document.getElementById('board').appendChild('div').setAttribute('data', `${row}`);
+      console.log(row);
+      var rowObj = document.createElement('div');
+      rowObj.setAttribute('class', `row${row}`);
+      //document.getElementById('board').appendChild(rowObj); adds rows correctly from here
       //then add in each cell to that row
-      // for (let col = 0; col < board[row].length; col++){
-      //   document.getElement
-      // }
+      for (let col = 0; col < board[row].length; col++){
+        //create cell in row (span within div)
+        var cellObj = document.createElement('span');
+        cellObj.setAttribute('class', `col${col}`);
+        //if the cell is blank, add an event listener for click events
+        if(board[row][col] === null) {
+          cellObj.innerHTML = '-';
+          //create the function to run when the cell is clicked
+          var moveListener = controller.createMoveListener([col,row]);
+          //and add it to the cell
+          cellObj.addEventListener("click", moveListener);
+        } else {
+          //if the cell is filled, copy the contents from the board
+          cellObj.innerHTML = board[row][col];
+        }
+        //add the cell to the row
+        rowObj.appendChild(cellObj);
+      }
+      //add the row of cells to the board
+      document.getElementById('board').appendChild(rowObj);
     }
   },
     /* premature optimization - include an undo button if the user presses the last square that was placed */
@@ -161,6 +185,10 @@ var view = {
       console.log(`${winner} wins the round!`)
       document.getElementById('banner').innerHTML=`VICTORY FOR ${winner}`;
     }
+  },
+
+  initializeReset: () => {
+    document.getElementById('reset').addEventListener("click", controller.resetBoard)
   }
 
     //take winner state
@@ -179,18 +207,17 @@ var controller = {
       //that calls the updateBoard function with a move Object
       model.updateBoard({
         move: xyTuple,
-        token: currentPlayer
+        token: model.state.currentPlayer
       });
       //and logs the move to the console
-      console.log(`${currentPlayer} places at [${xyTuple[0]}, ${xyTuple[1]}].`)
+      console.log(`${model.state.currentPlayer} places at [${xyTuple[0]}, ${xyTuple[1]}].`)
     });
   },
 
   resetBoard: () => {
     console.log('Clearing the board for a new round!')
-    model.initialize();
+    model.reinitialize();
   }
-
 };
 
 
