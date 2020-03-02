@@ -126,7 +126,8 @@ var model = {
       return [true, solved];
     }
     /* premature optimization - check for games where victory is impossible */
-}
+  }
+};
 
 
 
@@ -138,6 +139,13 @@ var view = {
     //rerender board (do not reload page) that is passed in from model
 
   //render a banner with the victor
+  renderBanner: (winner) => {
+    if (winner === null) {
+      console.log('GET READY!');
+    } else {
+      console.log(`${winner} wins the round!`)
+    }
+  }
     //initialize will send a reset request (null) that should be handled
     //take winner state
     //append a bold banner '{state.winner} is the Victor'
@@ -163,3 +171,7 @@ var controller = {
   }
 
 };
+
+
+//initialize the app after declaring all these functions!
+model.initialize();
