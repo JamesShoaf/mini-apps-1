@@ -1,29 +1,46 @@
-//initial model conditions on page load stored in global scope - hacking is encouraged (for now)
-
-var state = {
-  currentPlayer: 'X',
-  boardSolved: false,
-  winner: null
-};
-var currentBoard = [];
-
-
 //Model functions
 var model = {
 
+  state: {},
+
   //initialize board
-    //set up 3x3 array
+
+  initialize: () => {
     //set up state variables
-      //whose turn (start with X)
-      //board solved (start with 'false')
-      //winner
+    //whose turn (start with X)
+    model.state.currentPlayer = 'X';
+    //board solved (start with 'false')
+    model.state.boardSolved = false;
+    //winner (start with null)
+    model.state.winner = null;
+    //set up 3x3 array
+    model.state.currentBoard = [
+      [null, null, null],
+      [null, null, null],
+      [null, null, null]
+    ];
+    //reset the banner function
+    view.renderBanner(null);
+    //send the new board to the render function
+  },
+
+  //turn swapping helper function
+  swapTurns: () => {
+    var swap = {
+      X: 'O',
+      O: 'X'
+    };
+    model.state.currentPlayer = swap[currentPlayer];
+  },
 
   //draw a new board when a move is received
   updateBoard: (moveObj) => {
     //slice current 3x3 board
-    var newBoard = currentBoard.slice();
+    var newBoard = model.state.currentBoard.slice();
     //take move sent from controller's event listener and update the new board
     newBoard[moveObj.move[1]][moveObj.move[0]] = moveObj.token;
+    //switch whose turn it is
+    model.swapTurns();
     //check if the board is solved
     var victory = isBoardSolved(newBoard);
       //isBoardSolved returns a tuple of [bool, string] with bool representing board state
@@ -34,6 +51,8 @@ var model = {
       }
     //regardless, pass the new board to the render function
     view.renderBoard(newBoard);
+    //and update the existing board
+    model.state.currentBoard = newBoard;
   },
 
 
@@ -113,14 +132,16 @@ var model = {
 
 //View functions
 var view = {
-  //update DOM after each move
+  //update DOM after each move - general board renderer
     /* premature optimization - include an undo button if the user presses the last square that was placed */
-    //add event listener to squares that need it
+    //add event listener to squares that need it - blank ones
     //rerender board (do not reload page) that is passed in from model
 
   //render a banner with the victor
+    //initialize will send a reset request (null) that should be handled
     //take winner state
     //append a bold banner '{state.winner} is the Victor'
+    /* premature optimization - banner could list the current king of the hill or reigning champ when board is reset*/
 };
 
 var controller = {
