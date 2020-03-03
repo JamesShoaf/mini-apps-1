@@ -2,24 +2,33 @@
 var model = {
 
   state: {
-    X: 0,
-    O: 0
+    playerX: {
+      piece: 'X',
+      score: 0,
+      name: ''
+    },
+    playerO: {
+      piece: 'O',
+      score: 0,
+      name: ''
+    }
   },
 
   initialize: () => {
     model.reinitialize();
     view.initializeReset();
+    view.initializeForm();
   },
 
   //initialize board
   reinitialize: (winner) => {
     //set up state variables
     //whose turn (start with X)
-    var startingPlayer = 'X'
-    if (winner === 'X') {
-      startingPlayer = 'O'
+    if (winner === model.state.playerX) {
+      model.state.currentPlayer = model.state.playerO;
+    } else {
+      model.state.currentPlayer = model.state.playerX;
     }
-    model.state.currentPlayer = startingPlayer;
     //board solved (start with 'false')
     model.state.boardSolved = false;
     //winner (start with null)
@@ -36,14 +45,14 @@ var model = {
     view.renderBoard(model.state.currentBoard);
   },
 
-  swap: {
-    X: 'O',
-    O: 'X'
-  },
-
   //turn swapping helper function
   swapTurns: () => {
-    model.state.currentPlayer = model.swap[model.state.currentPlayer];
+    var s = model.state;
+    if(s.currentPlayer === s.playerX) {
+     s.currentPlayer = s.playerO;
+    } else {
+      s.currentPlayer = s.playerX;
+    }
   },
 
   //draw a new board when a move is received
@@ -79,9 +88,10 @@ var model = {
     //diagonal helper functions
     majorDiagonalHelper: (board) => {
       if (board[0][0] === 'X' && board[1][1] === 'X' && board[2][2] === 'X') {
-        return 'X';
+        console.log(model.state.playerX);
+        return model.state.playerX;
       } else if (board[0][0] === 'O' && board[1][1] === 'O' && board[2][2] === 'O') {
-        return 'O';
+        return model.state.playerO;
       } else {
         return false;
       }
@@ -89,9 +99,9 @@ var model = {
 
     minorDiagonalHelper: (board) => {
       if (board[2][0] === 'X' && board[1][1] === 'X' && board[0][2] === 'X') {
-        return 'X';
+        return model.state.playerX;
       } else if (board[2][0] === 'O' && board[1][1] === 'O' && board[0][2] === 'O') {
-        return 'O';
+        return model.state.playerO;
       } else {
         return false;
       }
@@ -101,9 +111,9 @@ var model = {
     rowHelper: (board) => {
       for (let i = 0; i < 3; i++) {
         if (board[i][0] === 'X' && board[i][1] === 'X' && board[i][2] === 'X') {
-          return 'X'
+          return model.state.playerX;
         } else if (board[i][0] === 'O' && board[i][1] === 'O' && board[i][2] === 'O') {
-          return 'O'
+          return model.state.playerO;
         }
       }
       return false;
@@ -113,9 +123,9 @@ var model = {
     columnHelper: (board) => {
       for (let i = 0; i < 3; i++) {
         if (board[0][i] === 'X' && board[1][i] === 'X' && board[2][i] === 'X') {
-          return 'X'
+          return model.state.playerX;
         } else if (board[0][i] === 'O' && board[1][i] === 'O' && board[2][i] === 'O') {
-          return 'O'
+          return model.state.playerO;
         }
       }
       return false;
@@ -141,7 +151,7 @@ var model = {
       return [solved, null];
     } else {
       //if the board is solved, return true and the winner
-      model.state[solved] += 1;
+      solved.score += 1;
       return [true, solved];
     }
     /* premature optimization - check for games where victory is impossible */
@@ -192,27 +202,23 @@ var view = {
   renderBanner: (winner) => {
     //initialize will send a reset request (null) to clear the current banner
     if (winner === null) {
-      console.log(`GET READY!\n${model.state.currentPlayer} plays first`);
+      console.log(`GET READY!\n${model.state.currentPlayer.name || model.state.currentPlayer.piece} plays first`);
       document.getElementById("banner").innerHTML='';
     } else {
-      document.getElementById('banner').innerHTML=`VICTORY FOR ${winner}`;
+      document.getElementById('banner').innerHTML=`VICTORY FOR ${winner.name}`;
     }
   },
 
   initializeReset: () => {
     document.getElementById('reset').addEventListener("click", controller.resetBoard)
-  }
+  },
 
-    //take winner state
-    //append a bold banner '{state.winner} is the Victor'
-    /* premature optimization - banner could list the current king of the hill or reigning champ when board is reset*/
+  initializeForm: () => {
+    document.getElementById('nameSubmit').addEventListener("click", controller.nameSubmit);
+  }
 };
 
 var controller = {
-//Controller functions
-  //update board when a piece is placed
-    //attach event listener to empty squares
-
   createMoveListener: (xyTuple) => {
     //takes the tuple [x, y] from view when the listener is added and returns a function
     return (() => {
@@ -220,18 +226,17 @@ var controller = {
         console.log('The game has ended! Please press reset to continue.');
         return;
       }
-      // console.log('the winner is', model.state.winner);
-      //that calls the updateBoard function with a move Object
+      //which calls the updateBoard function with a move Object
       model.updateBoard({
         move: xyTuple,
-        token: model.state.currentPlayer
+        token: model.state.currentPlayer.piece
       });
       //and logs the move to the console
-      console.log(`${model.state.currentPlayer} places at [${xyTuple[0]}, ${xyTuple[1]}].`)
+      console.log(`${model.state.currentPlayer.name || model.state.currentPlayer.piece} places at [${xyTuple[0]}, ${xyTuple[1]}].`)
       model.swapTurns();
       if(model.state.winner) {
-        console.log(`${model.state.winner} wins the round!`);
-        console.log(`CURRENT SCORES\nX: ${model.state.X}\nO: ${model.state.O}`);
+        console.log(`${model.state.winner.name || model.state.winner.piece} wins the round!`);
+        console.log(`CURRENT SCORES\n${model.state.playerX.name || 'X'}: ${model.state.playerX.score}\n${model.state.playerO.name || 'O'}: ${model.state.playerO.score}`);
       }
     });
   },
@@ -239,9 +244,11 @@ var controller = {
   resetBoard: () => {
     console.log('Clearing the board for a new round!')
     model.reinitialize(model.state.winner);
+  },
+
+  nameSubmit: (event) => {
+    event.preventDefault();
+    model.state.playerX.name = document.getElementById("xname").value;
+    model.state.playerO.name = document.getElementById("oname").value;
   }
 };
-
-
-// //initialize the app after declaring all these functions!
-// model.initialize();
