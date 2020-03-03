@@ -35,9 +35,9 @@ var model = {
     model.state.winner = null;
     //set up 3x3 array
     model.state.currentBoard = [
-      [null, null, null],
-      [null, null, null],
-      [null, null, null]
+      [[null, null], [null, null], [null, null]],
+      [[null, null], [null, null], [null, null]],
+      [[null, null], [null, null], [null, null]]
     ];
     //reset the banner function
     view.renderBanner(null);
@@ -65,7 +65,8 @@ var model = {
     //slice current 3x3 board
     var newBoard = model.state.currentBoard.slice();
     //take move sent from controller's event listener and update the new board
-    newBoard[moveObj.move[1]][moveObj.move[0]] = moveObj.token;
+    newBoard[moveObj.move[1]][moveObj.move[0]] = [moveObj.token, moveObj.name];
+
     //switch whose turn it is
     //check if the board is solved
     var victory = model.isBoardSolved(newBoard);
@@ -87,10 +88,10 @@ var model = {
   solverHelpers: {
     //diagonal helper functions
     majorDiagonalHelper: (board) => {
-      if (board[0][0] === 'X' && board[1][1] === 'X' && board[2][2] === 'X') {
+      if (board[0][0][0] === 'X' && board[1][1][0] === 'X' && board[2][2][0] === 'X') {
         console.log(model.state.playerX);
         return model.state.playerX;
-      } else if (board[0][0] === 'O' && board[1][1] === 'O' && board[2][2] === 'O') {
+      } else if (board[0][0][0] === 'O' && board[1][1][0] === 'O' && board[2][2][0] === 'O') {
         return model.state.playerO;
       } else {
         return false;
@@ -98,9 +99,9 @@ var model = {
     },
 
     minorDiagonalHelper: (board) => {
-      if (board[2][0] === 'X' && board[1][1] === 'X' && board[0][2] === 'X') {
+      if (board[2][0][0] === 'X' && board[1][1][0] === 'X' && board[0][2][0] === 'X') {
         return model.state.playerX;
-      } else if (board[2][0] === 'O' && board[1][1] === 'O' && board[0][2] === 'O') {
+      } else if (board[2][0][0] === 'O' && board[1][1][0] === 'O' && board[0][2][0] === 'O') {
         return model.state.playerO;
       } else {
         return false;
@@ -110,9 +111,9 @@ var model = {
     //row helper function
     rowHelper: (board) => {
       for (let i = 0; i < 3; i++) {
-        if (board[i][0] === 'X' && board[i][1] === 'X' && board[i][2] === 'X') {
+        if (board[i][0][0] === 'X' && board[i][1][0] === 'X' && board[i][2][0] === 'X') {
           return model.state.playerX;
-        } else if (board[i][0] === 'O' && board[i][1] === 'O' && board[i][2] === 'O') {
+        } else if (board[i][0][0] === 'O' && board[i][1][0] === 'O' && board[i][2][0] === 'O') {
           return model.state.playerO;
         }
       }
@@ -122,9 +123,9 @@ var model = {
     //column helper functions
     columnHelper: (board) => {
       for (let i = 0; i < 3; i++) {
-        if (board[0][i] === 'X' && board[1][i] === 'X' && board[2][i] === 'X') {
+        if (board[0][i][0] === 'X' && board[1][i][0] === 'X' && board[2][i][0] === 'X') {
           return model.state.playerX;
-        } else if (board[0][i] === 'O' && board[1][i] === 'O' && board[2][i] === 'O') {
+        } else if (board[0][i][0] === 'O' && board[1][i][0] === 'O' && board[2][i][0] === 'O') {
           return model.state.playerO;
         }
       }
@@ -175,9 +176,9 @@ var view = {
       for (let col = 0; col < board[row].length; col++){
         //create cell in row (span within div)
         var cellObj = document.createElement('span');
-        cellObj.setAttribute('class', `col${col}`);
+        cellObj.setAttribute('class', `col${col} boardcell`);
         //if the cell is blank, add an event listener for click events
-        if(board[row][col] === null) {
+        if(board[row][col][0] === null) {
           cellObj.innerHTML = ' - ';
           //create the function to run when the cell is clicked
           var moveListener = controller.createMoveListener([col,row]);
@@ -185,7 +186,13 @@ var view = {
           cellObj.addEventListener("click", moveListener);
         } else {
           //if the cell is filled, copy the contents from the board
-          cellObj.innerHTML = ` ${board[row][col]} `;
+          //this code puts the player name in the same field as the move, which is inconvenient for CSS
+          //cellObj.innerHTML = ` ${board[row][col][0]} ${board[row][col][1]} `;
+          cellObj.innerHTML = ` ${board[row][col][0]} `;
+          var playerName = document.createElement('span');
+          playerName.setAttribute('class', 'playerName');
+          playerName.innerHTML = `${board[row][col][1]}`;
+          cellObj.appendChild(playerName);
         }
         //add the cell to the row
         rowObj.appendChild(cellObj);
@@ -229,7 +236,8 @@ var controller = {
       //which calls the updateBoard function with a move Object
       model.updateBoard({
         move: xyTuple,
-        token: model.state.currentPlayer.piece
+        token: model.state.currentPlayer.piece,
+        name: model.state.currentPlayer.name
       });
       //and logs the move to the console
       console.log(`${model.state.currentPlayer.name || model.state.currentPlayer.piece} places at [${xyTuple[0]}, ${xyTuple[1]}].`)

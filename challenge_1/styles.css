@@ -1,0 +1,23 @@
+.boardcell {
+  background-color: blanchedalmond;
+  font-size: xx-large;
+  display: inline-block;
+  width: 25%;
+  height: 25%;
+  border-color: black;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.playerName {
+  font-size: xx-small;
+}
+
+#reset {
+  background-color: crimson;
+  border-radius: 15px;
+  width: 25%;
+  font-size: large;
+  font-weight: bold;
+  text-align: center;
+}
